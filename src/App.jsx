@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { WebSocketProvider } from "./Components/WebSocketProvider";
 import Login from "./Components/Login";
-import OnlineUsers from "./Components/OnlineUsers";
+import UserList from "./Components/UserListPage";  // Renamed component
+import UserListPage from "./Components/UserListPage";
 
 const App = () => {
   return (
@@ -9,7 +10,7 @@ const App = () => {
       <WebSocketProvider>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/online-users" element={<ProtectedRoute component={OnlineUsers} />} />
+          <Route path="/users" element={<ProtectedRoute component={UserListPage} />} />
         </Routes>
       </WebSocketProvider>
     </Router>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -11,21 +11,31 @@ const Login = () => {
       const response = await fetch("http://192.168.0.170:8080/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password }), // ✅ Send entered username/password
       });
-
-      if (!response.ok) throw new Error("Login failed");
-
-      const data = await response.text(); // Read raw token
-        console.log("data:", data);
-        localStorage.setItem("jwt", data);
-
-      localStorage.setItem("username", username); // Store username for WebSocket
-      navigate("/online-users"); // Redirect after login
+  
+      if (response.ok) {
+        const token = await response.text(); // ✅ Read token as text
+  
+        if (!token) {
+          console.error("❌ Missing token in response");
+          return;
+        }
+  
+        // ✅ Store JWT token and username in localStorage
+        localStorage.setItem("jwt", token.trim());
+        localStorage.setItem("username", username.trim()); // ✅ Use entered username
+  
+        // ✅ Redirect to user list page
+        navigate("/users");
+      } else {
+        alert("Invalid credentials");
+      }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login failed:", error);
     }
   };
+  
 
   return (
     <div>

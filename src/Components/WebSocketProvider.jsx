@@ -7,6 +7,7 @@ const WebSocketContext = createContext(null);
 export const WebSocketProvider = ({ children }) => {
   const stompClientRef = useRef(null);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [messages, setMessages] = useState([]);  // Store incoming messages
 
   useEffect(() => {
     console.log("Initializing WebSocket connection...");
@@ -19,7 +20,9 @@ export const WebSocketProvider = ({ children }) => {
     const token = localStorage.getItem("jwt");
     const username = localStorage.getItem("username");
 
-    if (!token || !username) return;
+    if (!token || !username) 
+      {console.log("username or token is null ", token, username);
+      return;}
 
     const socket = new SockJS("http://192.168.0.170:8080/chat");
     const client = new Client({
@@ -30,12 +33,21 @@ export const WebSocketProvider = ({ children }) => {
       onConnect: () => {
         console.log("✅ Connected to WebSocket");
 
+        // ✅ Subscribe to online users
         client.subscribe("/topic/online-users", (message) => {
           const users = new Set(JSON.parse(message.body));
           console.log("Updated online users:", users);
           setOnlineUsers(users);
         });
 
+        // ✅ Subscribe to messages sent to the user
+        client.subscribe(`/user/queue/messages`, (message) => {
+          const receivedMessage = JSON.parse(message.body);
+          console.log("📩 New message received:", receivedMessage);
+          setMessages((prev) => [...prev, receivedMessage]);
+        });
+
+        // Notify the backend that this user is online
         client.publish({
           destination: "/app/user-online",
           body: JSON.stringify({ username }),
@@ -57,7 +69,11 @@ export const WebSocketProvider = ({ children }) => {
     };
   }, []);
 
-  return <WebSocketContext.Provider value={{ onlineUsers }}>{children}</WebSocketContext.Provider>;
+  return (
+    <WebSocketContext.Provider value={{ onlineUsers, messages }}>
+      {children}
+    </WebSocketContext.Provider>
+  );
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);
