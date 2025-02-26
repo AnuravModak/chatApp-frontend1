@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useWebSocket } from "./WebSocketProvider";
 import { Card, CardContent, Typography, Avatar } from "@mui/material";
+import { useNavigate } from "react-router-dom"; // ✅ Import navigation
 import "../Styles/UserListPage.css"; // Import CSS file
 
 const UserListPage = () => {
   const [users, setUsers] = useState([]);
-  const { onlineUsers } = useWebSocket(); // WebSocket live updates
+  const { onlineUsers } = useWebSocket();
+  const navigate = useNavigate(); // ✅ Navigation hook
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -20,16 +22,15 @@ const UserListPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-
+        if (!response.ok) throw new Error("Failed to fetch users");
         const data = await response.json();
 
-        // ✅ Merge online status from WebSocket with DB users
+        
+
+        // ✅ Merge online status dynamically
         const updatedUsers = data.map((user) => ({
           ...user,
-          isOnline: onlineUsers.has(user.username), // Set online status dynamically
+          isOnline: onlineUsers.has(user.username),
         }));
 
         setUsers(updatedUsers);
@@ -44,21 +45,28 @@ const UserListPage = () => {
   }, []);
 
   useEffect(() => {
-    // ✅ Update online status dynamically whenever onlineUsers change
+    // ✅ Update online status dynamically
     setUsers((prevUsers) =>
       prevUsers.map((user) => ({
         ...user,
         isOnline: onlineUsers.has(user.username),
       }))
     );
-  }, [onlineUsers]); // Runs every time `onlineUsers` updates
+  }, [onlineUsers]);
+
+  // ✅ Open chat when clicking on a user
+  const handleUserClick = (user) => {
+    const senderId = localStorage.getItem("userId"); // Current logged-in user
+    console.log("sender id from UserListPage: ", senderId );
+    navigate("/chat", { state: { senderId, receiverId: user.id, username: user.username } });
+  };
 
   return (
     <div className="user-list-container">
       <h2>User List</h2>
       <div className="user-grid">
         {users.map((user) => (
-          <Card key={user.id} className="user-card">
+          <Card key={user.id} className="user-card" onClick={() => handleUserClick(user)} style={{ cursor: "pointer" }}>
             <CardContent>
               <Avatar className={`avatar ${user.isOnline ? "online" : "offline"}`}>
                 {user.username[0].toUpperCase()}

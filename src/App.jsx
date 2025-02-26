@@ -3,6 +3,7 @@ import { WebSocketProvider } from "./Components/WebSocketProvider";
 import Login from "./Components/Login";
 import UserList from "./Components/UserListPage";  // Renamed component
 import UserListPage from "./Components/UserListPage";
+import ChatPage from "./Components/ChatPage";
 
 const App = () => {
   return (
@@ -11,6 +12,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/users" element={<ProtectedRoute component={UserListPage} />} />
+          <Route path="/chat" element={<ProtectedRoute component={ChatPage} />} />
         </Routes>
       </WebSocketProvider>
     </Router>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { fetchUserByUsername } from "../Routers/api";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -21,6 +22,13 @@ const Login = () => {
           console.error("❌ Missing token in response");
           return;
         }
+
+        console.log("user data for username");
+
+        const userData= await fetchUserByUsername(username);
+
+        localStorage.setItem("userId", userData.data.id);
+
   
         // ✅ Store JWT token and username in localStorage
         localStorage.setItem("jwt", token.trim());
